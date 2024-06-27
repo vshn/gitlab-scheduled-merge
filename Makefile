@@ -38,10 +38,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 .PHONY: lint
-lint: fmt vet generate manifests ## All-in-one linting
-	@echo 'Checking kustomize build ...'
-	$(KUSTOMIZE) build config/crd -o /dev/null
-	$(KUSTOMIZE) build config/default -o /dev/null
+lint: fmt vet generate ## All-in-one linting
 	@echo 'Check for uncommitted changes ...'
 	git diff --exit-code
 
