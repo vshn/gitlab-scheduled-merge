@@ -10,6 +10,25 @@ You'll need a GitLab access token with read-write access to all the repositories
 ./gitlab-scheduled-merge -t [GITLAB_TOKEN] --gitlab-base-url [BASE_URL]
 ```
 
+Your repositories need to be configured for scheduled automerge by adding a config file to the tree, which defines the time windows during which scheduled MRs can be merged.
+By default, this file is called `.merge-schedule.yml`.
+
+`.merge-schedule.yml`:
+```
+mergeWindows:
+- schedule:
+    cron: '0 2 * * *' # cron schedule which specifies the start of each merge window
+    isoWeek: '@even' # optional, can be @even or @odd to restrict the cron schedule to even/odd week numbers, or an integer to restrict it to one specific week of the year
+    location: 'Europe/Zurich' # optional, specify the time zone to interpret the cron schedule
+  maxDelay: '1h' # duration for which the merge window remains active
+```
+
+The config file is taken from the source branch of the merge request that is to be scheduled.
+
+If multiple schedules are specified, merge requests are merged if at least one of them is active.
+
+Whenever a merge request is labeled with the correct label (by default `scheduled`), the application will find it and merge it if a merge window is currently active, or post a comment indicating when the next merge window takes place.
+
 ## License
 
 BSD 3-Clause License

@@ -155,7 +155,7 @@ func (w MergeWindow) getNextActiveWindowStartTime(t time.Time) (time.Time, error
 	if w.Schedule.Location != "" {
 		l, err := time.LoadLocation(w.Schedule.Location)
 		if err != nil {
-			return time.Time{}, fmt.Errorf("Failed to load location for merge window: %w", err)
+			return time.Time{}, fmt.Errorf("failed to load location for merge window: %w", err)
 		}
 		location = l
 	}
@@ -164,7 +164,7 @@ func (w MergeWindow) getNextActiveWindowStartTime(t time.Time) (time.Time, error
 
 	sched, err := cron.ParseStandard(w.Schedule.Cron)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("Failed to parse cron schedule: %w", err)
+		return time.Time{}, fmt.Errorf("failed to parse cron schedule: %w", err)
 	}
 
 	nextRun := sched.Next(earliestTime)
