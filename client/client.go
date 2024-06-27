@@ -47,12 +47,12 @@ func (g *GitlabClient) GetConfigFileForMR(mr *gitlab.MergeRequest, filePath stri
 func (g *GitlabClient) ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, error) {
 	labels := gitlab.LabelOptions{label}
 	opts := &gitlab.ListMergeRequestsOptions{
-		ListOptions: gitlab.ListOptions {
+		ListOptions: gitlab.ListOptions{
 			PerPage: 20,
-			Page: 1,
+			Page:    1,
 		},
-		State: gitlab.Ptr("opened"),
-		Labels: &labels,
+		State:                  gitlab.Ptr("opened"),
+		Labels:                 &labels,
 		WithMergeStatusRecheck: gitlab.Ptr(true),
 	}
 	var allMrs []*gitlab.MergeRequest
@@ -82,7 +82,7 @@ func (g *GitlabClient) RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest,
 	return mr, nil
 }
 
-func (g *GitlabClient) MergeMr(mr *gitlab.MergeRequest) (error) {
+func (g *GitlabClient) MergeMr(mr *gitlab.MergeRequest) error {
 	opts := &gitlab.AcceptMergeRequestOptions{ShouldRemoveSourceBranch: gitlab.Ptr(true)}
 	_, _, err := g.client.MergeRequests.AcceptMergeRequest(mr.ProjectID, mr.IID, opts)
 	if err != nil {
@@ -91,7 +91,7 @@ func (g *GitlabClient) MergeMr(mr *gitlab.MergeRequest) (error) {
 	return nil
 }
 
-func IsMergeable(mr *gitlab.MergeRequest) (bool) {
+func IsMergeable(mr *gitlab.MergeRequest) bool {
 	return mr.DetailedMergeStatus == MR_MERGE_STATUS_MERGEABLE
 }
 

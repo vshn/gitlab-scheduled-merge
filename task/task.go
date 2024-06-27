@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/vshn/gitlab-scheduled-merge/client"
 	"github.com/robfig/cron/v3"
+	"github.com/vshn/gitlab-scheduled-merge/client"
 	"github.com/xanzy/go-gitlab"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
@@ -27,7 +27,7 @@ type RepositoryConfig struct {
 	MergeWindows []MergeWindow `yaml:"mergeWindows"`
 }
 type MergeWindow struct {
-	Schedule MergeSchedule `yaml:schedule`
+	Schedule MergeSchedule `yaml:"schedule"`
 	MaxDelay time.Duration `yaml:"maxDelay"`
 }
 type MergeSchedule struct {
@@ -83,7 +83,7 @@ func (t Task) processMR(mr *gitlab.MergeRequest) error {
 			return t.client.Comment(mr, "Failed to schedule merge: error while parsing merge windows.")
 		}
 		if nextActiveStartTime.Before(now) {
-				return t.mergeMR(mr)
+			return t.mergeMR(mr)
 		}
 		if nextActiveStartTime.Before(earliestMergeWindowTime) {
 			earliestMergeWindow = &w
@@ -148,7 +148,7 @@ func (w MergeWindow) getNextActiveWindowStartTime(t time.Time) (time.Time, error
 	}
 
 	nextRun := sched.Next(earliestTime)
-		for i := 0; i < 1000; i++ {
+	for i := 0; i < 1000; i++ {
 		isoWeekOK, err := w.checkIsoWeek(nextRun)
 		if err != nil {
 			return time.Time{}, err

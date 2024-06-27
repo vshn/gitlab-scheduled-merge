@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/vshn/gitlab-scheduled-merge/client"
-	"github.com/vshn/gitlab-scheduled-merge/task"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
+	"github.com/vshn/gitlab-scheduled-merge/client"
+	"github.com/vshn/gitlab-scheduled-merge/task"
 )
 
 var (
