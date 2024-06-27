@@ -119,7 +119,7 @@ func mrList() []*gitlab.MergeRequest {
 		DetailedMergeStatus: "mergeable",
 	}
 	g := &gitlab.MergeRequest{
-		IID:                 2,
+		IID: 2,
 	}
 	return []*gitlab.MergeRequest{f, g}
 }
