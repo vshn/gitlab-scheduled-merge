@@ -63,7 +63,7 @@ func main() {
 }
 
 func setupCronTask(
-	client *client.GitlabClient,
+	client client.GitlabClient,
 	crontab string,
 	scheduledLabel string,
 	configFilePath string,

@@ -13,13 +13,21 @@ type GitlabConfig struct {
 	BaseURL     string
 }
 
-type GitlabClient struct {
+type GitlabClient interface {
+	GetConfigFileForMR(mr *gitlab.MergeRequest, filePath string) (*[]byte, error)
+	ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, error)
+	RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest, error)
+	MergeMr(mr *gitlab.MergeRequest) error
+	Comment(mr *gitlab.MergeRequest, comment string) error
+}
+
+type gitlabClientImpl struct {
 	client *gitlab.Client
 	me     *gitlab.User
 	config *GitlabConfig
 }
 
-func NewGitlabClient(config GitlabConfig) (*GitlabClient, error) {
+func NewGitlabClient(config GitlabConfig) (GitlabClient, error) {
 	git, err := gitlab.NewClient(config.AccessToken, gitlab.WithBaseURL(config.BaseURL))
 	if err != nil {
 		return nil, fmt.Errorf("failed to authenticate to GitLab: %w", err)
@@ -28,14 +36,14 @@ func NewGitlabClient(config GitlabConfig) (*GitlabClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current user information from GitLab: %w", err)
 	}
-	return &GitlabClient{
+	return &gitlabClientImpl{
 		client: git,
 		me:     me,
 		config: &config,
 	}, nil
 }
 
-func (g *GitlabClient) GetConfigFileForMR(mr *gitlab.MergeRequest, filePath string) (*[]byte, error) {
+func (g *gitlabClientImpl) GetConfigFileForMR(mr *gitlab.MergeRequest, filePath string) (*[]byte, error) {
 	opts := &gitlab.GetRawFileOptions{Ref: &mr.SourceBranch}
 	file, _, err := g.client.RepositoryFiles.GetRawFile(mr.ProjectID, filePath, opts)
 	if err != nil {
@@ -44,7 +52,7 @@ func (g *GitlabClient) GetConfigFileForMR(mr *gitlab.MergeRequest, filePath stri
 	return &file, nil
 }
 
-func (g *GitlabClient) ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, error) {
+func (g *gitlabClientImpl) ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, error) {
 	labels := gitlab.LabelOptions{label}
 	opts := &gitlab.ListMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -72,7 +80,7 @@ func (g *GitlabClient) ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, e
 	return allMrs, nil
 }
 
-func (g *GitlabClient) RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest, error) {
+func (g *gitlabClientImpl) RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest, error) {
 	opts := &gitlab.GetMergeRequestsOptions{}
 	mr, _, err := g.client.MergeRequests.GetMergeRequest(mr.ProjectID, mr.IID, opts)
 	if err != nil {
@@ -82,7 +90,7 @@ func (g *GitlabClient) RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest,
 	return mr, nil
 }
 
-func (g *GitlabClient) MergeMr(mr *gitlab.MergeRequest) error {
+func (g *gitlabClientImpl) MergeMr(mr *gitlab.MergeRequest) error {
 	opts := &gitlab.AcceptMergeRequestOptions{ShouldRemoveSourceBranch: gitlab.Ptr(true)}
 	_, _, err := g.client.MergeRequests.AcceptMergeRequest(mr.ProjectID, mr.IID, opts)
 	if err != nil {
@@ -91,11 +99,7 @@ func (g *GitlabClient) MergeMr(mr *gitlab.MergeRequest) error {
 	return nil
 }
 
-func IsMergeable(mr *gitlab.MergeRequest) bool {
-	return mr.DetailedMergeStatus == MR_MERGE_STATUS_MERGEABLE
-}
-
-func (g *GitlabClient) Comment(mr *gitlab.MergeRequest, comment string) error {
+func (g *gitlabClientImpl) Comment(mr *gitlab.MergeRequest, comment string) error {
 	nopts := &gitlab.ListMergeRequestNotesOptions{}
 	notes, _, err := g.client.Notes.ListMergeRequestNotes(mr.ProjectID, mr.IID, nopts)
 	if err != nil {
@@ -119,4 +123,8 @@ func (g *GitlabClient) Comment(mr *gitlab.MergeRequest, comment string) error {
 		return fmt.Errorf("failed to add comment to MR: %w", err)
 	}
 	return nil
+}
+
+func IsMergeable(mr *gitlab.MergeRequest) bool {
+	return mr.DetailedMergeStatus == MR_MERGE_STATUS_MERGEABLE
 }
