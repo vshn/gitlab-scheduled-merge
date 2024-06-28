@@ -196,9 +196,11 @@ func (w MergeWindow) checkIsoWeek(t time.Time) (bool, error) {
 		return iw%2 == 0, nil
 	case "@odd":
 		return iw%2 == 1, nil
-	case strconv.Itoa(iw):
-		return true, nil
-	default:
-		return false, fmt.Errorf("unknown iso week: %s", w.Schedule.IsoWeek)
 	}
+	nw, err := strconv.ParseInt(w.Schedule.IsoWeek, 10, 64)
+	if err == nil {
+		return nw == int64(iw), nil
+	}
+
+	return false, fmt.Errorf("unknown iso week: %s", w.Schedule.IsoWeek)
 }
