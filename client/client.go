@@ -61,6 +61,7 @@ func (g *gitlabClientImpl) ListMrsWithLabel(label string) ([]*gitlab.MergeReques
 		},
 		State:                  gitlab.Ptr("opened"),
 		Labels:                 &labels,
+		Scope:                  gitlab.Ptr("all"),
 		WithMergeStatusRecheck: gitlab.Ptr(true),
 	}
 	var allMrs []*gitlab.MergeRequest
