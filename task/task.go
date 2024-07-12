@@ -70,6 +70,7 @@ func (t Task) Run() error {
 		return fmt.Errorf("failed to list MRs: %w", err)
 	}
 
+	log.Printf("Processing %d MRs with label...\n", len(mrs))
 	errs := make([]error, 0)
 	for _, mr := range mrs {
 		err := t.processMR(mr)
