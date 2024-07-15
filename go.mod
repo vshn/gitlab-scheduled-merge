@@ -5,7 +5,7 @@ go 1.22.2
 require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.8.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.9.0
 	github.com/xanzy/go-gitlab v0.106.0
 	go.uber.org/mock v0.4.0
 	go.uber.org/multierr v1.11.0
