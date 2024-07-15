@@ -12,7 +12,7 @@ package mock_client
 import (
 	reflect "reflect"
 
-	go_gitlab "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -40,21 +40,21 @@ func (m *MockGitlabClient) EXPECT() *MockGitlabClientMockRecorder {
 }
 
 // Comment mocks base method.
-func (m *MockGitlabClient) Comment(mr *go_gitlab.MergeRequest, comment string) error {
+func (m *MockGitlabClient) Comment(mr *gitlab.MergeRequest, title, comment string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Comment", mr, comment)
+	ret := m.ctrl.Call(m, "Comment", mr, title, comment)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Comment indicates an expected call of Comment.
-func (mr_2 *MockGitlabClientMockRecorder) Comment(mr, comment any) *gomock.Call {
+func (mr_2 *MockGitlabClientMockRecorder) Comment(mr, title, comment any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Comment", reflect.TypeOf((*MockGitlabClient)(nil).Comment), mr, comment)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Comment", reflect.TypeOf((*MockGitlabClient)(nil).Comment), mr, title, comment)
 }
 
 // GetConfigFileForMR mocks base method.
-func (m *MockGitlabClient) GetConfigFileForMR(mr *go_gitlab.MergeRequest, filePath string) (*[]byte, error) {
+func (m *MockGitlabClient) GetConfigFileForMR(mr *gitlab.MergeRequest, filePath string) (*[]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfigFileForMR", mr, filePath)
 	ret0, _ := ret[0].(*[]byte)
@@ -69,10 +69,10 @@ func (mr_2 *MockGitlabClientMockRecorder) GetConfigFileForMR(mr, filePath any) *
 }
 
 // ListMrsWithLabel mocks base method.
-func (m *MockGitlabClient) ListMrsWithLabel(label string) ([]*go_gitlab.MergeRequest, error) {
+func (m *MockGitlabClient) ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMrsWithLabel", label)
-	ret0, _ := ret[0].([]*go_gitlab.MergeRequest)
+	ret0, _ := ret[0].([]*gitlab.MergeRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -84,7 +84,7 @@ func (mr *MockGitlabClientMockRecorder) ListMrsWithLabel(label any) *gomock.Call
 }
 
 // MergeMr mocks base method.
-func (m *MockGitlabClient) MergeMr(mr *go_gitlab.MergeRequest) error {
+func (m *MockGitlabClient) MergeMr(mr *gitlab.MergeRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MergeMr", mr)
 	ret0, _ := ret[0].(error)
@@ -98,10 +98,10 @@ func (mr_2 *MockGitlabClientMockRecorder) MergeMr(mr any) *gomock.Call {
 }
 
 // RefreshMr mocks base method.
-func (m *MockGitlabClient) RefreshMr(mr *go_gitlab.MergeRequest) (*go_gitlab.MergeRequest, error) {
+func (m *MockGitlabClient) RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshMr", mr)
-	ret0, _ := ret[0].(*go_gitlab.MergeRequest)
+	ret0, _ := ret[0].(*gitlab.MergeRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

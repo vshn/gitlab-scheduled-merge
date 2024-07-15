@@ -54,7 +54,7 @@ func Test_RunTask(t *testing.T) {
 		mock.EXPECT().RefreshMr(mrs[0]).Return(mrs[0], nil),
 		mock.EXPECT().MergeMr(mrs[0]).Return(nil),
 		mock.EXPECT().GetConfigFileForMR(mrs[1], ".config-file.yml").Return(inactiveMergeWindow(), nil),
-		mock.EXPECT().Comment(mrs[1], gomock.Not(hasSubstr{[]string{"Failed"}})).Return(nil),
+		mock.EXPECT().Comment(mrs[1], gomock.Not(hasSubstr{[]string{"Failed"}}), gomock.Any()).Return(nil),
 	)
 
 	err := subject.Run()
@@ -77,9 +77,9 @@ func Test_RunTask_TimeZoneShenanigans(t *testing.T) {
 	gomock.InOrder(
 		mock.EXPECT().ListMrsWithLabel(gomock.Any()).Return(mrs, nil),
 		mock.EXPECT().GetConfigFileForMR(mrs[0], ".config-file.yml").Return(inactiveMergeWindowWithLocation(), nil),
-		mock.EXPECT().Comment(mrs[0], gomock.Not(hasSubstr{[]string{"Failed"}})).Return(nil),
+		mock.EXPECT().Comment(mrs[0], gomock.Not(hasSubstr{[]string{"Failed"}}), gomock.Any()).Return(nil),
 		mock.EXPECT().GetConfigFileForMR(mrs[1], ".config-file.yml").Return(inactiveMergeWindowWithWeek(), nil),
-		mock.EXPECT().Comment(mrs[1], gomock.Not(hasSubstr{[]string{"Failed"}})).Return(nil),
+		mock.EXPECT().Comment(mrs[1], gomock.Not(hasSubstr{[]string{"Failed"}}), gomock.Any()).Return(nil),
 	)
 
 	err := subject.Run()
@@ -102,9 +102,9 @@ func Test_RunTask_WithError(t *testing.T) {
 	gomock.InOrder(
 		mock.EXPECT().ListMrsWithLabel(gomock.Any()).Return(mrs, nil),
 		mock.EXPECT().GetConfigFileForMR(mrs[0], ".config-file.yml").Return(nil, errors.New("ERROR FAIL HALP")),
-		mock.EXPECT().Comment(mrs[0], hasSubstr{[]string{"Failed"}}).Return(nil),
+		mock.EXPECT().Comment(mrs[0], hasSubstr{[]string{"Failed"}}, gomock.Any()).Return(nil),
 		mock.EXPECT().GetConfigFileForMR(mrs[1], ".config-file.yml").Return(inactiveMergeWindowWithWeek(), nil),
-		mock.EXPECT().Comment(mrs[1], gomock.Not(hasSubstr{[]string{"Failed"}})).Return(errors.New("COMMENT FAILED")),
+		mock.EXPECT().Comment(mrs[1], gomock.Not(hasSubstr{[]string{"Failed"}}), gomock.Any()).Return(errors.New("COMMENT FAILED")),
 	)
 
 	err := subject.Run()

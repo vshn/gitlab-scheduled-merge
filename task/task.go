@@ -43,6 +43,13 @@ type Clock interface {
 
 type realClock struct{}
 
+const (
+	COMMENT_MERGE_FAILED            = "Failed to merge"
+	COMMENT_MERGE_SKIPPED           = "Not merging automatically"
+	COMMENT_MERGE_SCHEDULING_FAILED = "Failed to schedule merge"
+	COMMENT_MERGE_SCHEDULED         = "Merge scheduled"
+)
+
 func (realClock) Now() time.Time {
 	return time.Now()
 }
@@ -85,14 +92,14 @@ func (t Task) processMR(mr *gitlab.MergeRequest) error {
 	file, err := t.client.GetConfigFileForMR(mr, t.config.ConfigFilePath)
 
 	if err != nil {
-		return t.client.Comment(mr, "Failed to schedule merge: missing config file.")
+		return t.client.Comment(mr, COMMENT_MERGE_SCHEDULING_FAILED, "Missing config file.")
 	}
 
 	config := RepositoryConfig{}
 	err = yaml.Unmarshal(*file, &config)
 
 	if err != nil {
-		return t.client.Comment(mr, fmt.Sprintf("Failed to schedule merge: Error while parsing config file.\n\n%s", err.Error()))
+		return t.client.Comment(mr, COMMENT_MERGE_SCHEDULING_FAILED, fmt.Sprintf("Error while parsing config file.\n\n%s", err.Error()))
 	}
 
 	now := t.clock.Now()
@@ -101,7 +108,7 @@ func (t Task) processMR(mr *gitlab.MergeRequest) error {
 	for _, w := range config.MergeWindows {
 		nextActiveStartTime, err := w.getNextActiveWindowStartTime(now)
 		if err != nil {
-			return t.client.Comment(mr, fmt.Sprintf("Failed to schedule merge: Error while parsing merge windows.\n\n%s", err.Error()))
+			return t.client.Comment(mr, COMMENT_MERGE_SCHEDULING_FAILED, fmt.Sprintf("Error while parsing merge windows.\n\n%s", err.Error()))
 		}
 		if nextActiveStartTime.Before(now) {
 			return t.mergeMR(mr)
@@ -114,7 +121,7 @@ func (t Task) processMR(mr *gitlab.MergeRequest) error {
 	nextActiveEndTime := earliestMergeWindowTime.Add(earliestMergeWindow.MaxDelay)
 
 	msg := fmt.Sprintf(
-		"Merge scheduled. This MR will be merged between %s and %s.",
+		"This MR will be merged between %s and %s.",
 		earliestMergeWindowTime.Format(time.UnixDate),
 		nextActiveEndTime.Format(time.UnixDate),
 	)
@@ -127,23 +134,23 @@ func (t Task) processMR(mr *gitlab.MergeRequest) error {
 		)
 
 	}
-	return t.client.Comment(mr, msg)
+	return t.client.Comment(mr, COMMENT_MERGE_SCHEDULED, msg)
 }
 
 func (t Task) mergeMR(mr *gitlab.MergeRequest) error {
 	// We need to recheck MRs - we might in the interim have merged other things that led to conflicts
 	rmr, err := t.client.RefreshMr(mr)
 	if err != nil {
-		return t.client.Comment(mr, fmt.Sprintf("Failed to merge: error while refreshing merge request data.\n\n%s", err.Error()))
+		return t.client.Comment(mr, COMMENT_MERGE_FAILED, fmt.Sprintf("Error while refreshing merge request data.\n\n%s", err.Error()))
 	}
 
 	if !client.IsMergeable(rmr) {
-		return t.client.Comment(mr, fmt.Sprintf("Not merging automatically: MR is not mergeable. Current status: %s", rmr.DetailedMergeStatus))
+		return t.client.Comment(mr, COMMENT_MERGE_SKIPPED, fmt.Sprintf("MR is not mergeable. Current status: %s", rmr.DetailedMergeStatus))
 	}
 
 	err = t.client.MergeMr(rmr)
 	if err != nil {
-		return t.client.Comment(mr, fmt.Sprintf("Failed to merge: Error while merging.\n\n%s", err.Error()))
+		return t.client.Comment(mr, COMMENT_MERGE_FAILED, fmt.Sprintf("Error while merging.\n\n%s", err.Error()))
 	}
 
 	return nil

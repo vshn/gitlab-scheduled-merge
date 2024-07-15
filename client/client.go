@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/xanzy/go-gitlab"
 )
@@ -18,7 +19,7 @@ type GitlabClient interface {
 	ListMrsWithLabel(label string) ([]*gitlab.MergeRequest, error)
 	RefreshMr(mr *gitlab.MergeRequest) (*gitlab.MergeRequest, error)
 	MergeMr(mr *gitlab.MergeRequest) error
-	Comment(mr *gitlab.MergeRequest, comment string) error
+	Comment(mr *gitlab.MergeRequest, title string, comment string) error
 }
 
 type gitlabClientImpl struct {
@@ -100,30 +101,50 @@ func (g *gitlabClientImpl) MergeMr(mr *gitlab.MergeRequest) error {
 	return nil
 }
 
-func (g *gitlabClientImpl) Comment(mr *gitlab.MergeRequest, comment string) error {
+func (g *gitlabClientImpl) Comment(mr *gitlab.MergeRequest, title string, comment string) error {
+	full_comment := fmt.Sprintf("**%s**:  %s", title, comment)
 	nopts := &gitlab.ListMergeRequestNotesOptions{}
 	notes, _, err := g.client.Notes.ListMergeRequestNotes(mr.ProjectID, mr.IID, nopts)
+
 	if err != nil {
 		return fmt.Errorf("failed to get comments on MR: %w", err)
 	}
 
 	for _, n := range notes {
 		if n.Author.ID == g.me.ID {
-			if n.Body == comment {
+			if title == extractTitleFromComment(n.Body) {
+				// Update old comment with the same title:
+				opts := &gitlab.UpdateMergeRequestNoteOptions{
+					Body: gitlab.Ptr(full_comment),
+				}
+				_, _, err = g.client.Notes.UpdateMergeRequestNote(mr.ProjectID, mr.IID, n.ID, opts)
+				if err != nil {
+					return fmt.Errorf("failed to update comment on MR: %w", err)
+				}
 				return nil
 			}
+			// Only check the newest own comment for title match.
 			break
 		}
 	}
 
+	// We don't have the possibility to update a previous comment of the same type - make a new one:
 	opts := &gitlab.CreateMergeRequestNoteOptions{
-		Body: gitlab.Ptr(comment),
+		Body: gitlab.Ptr(full_comment),
 	}
 	_, _, err = g.client.Notes.CreateMergeRequestNote(mr.ProjectID, mr.IID, opts)
 	if err != nil {
 		return fmt.Errorf("failed to add comment to MR: %w", err)
 	}
 	return nil
+}
+
+func extractTitleFromComment(comment string) string {
+	parts := strings.Split(comment, "**")
+	if len(parts) >= 2 {
+		return parts[1]
+	}
+	return ""
 }
 
 func IsMergeable(mr *gitlab.MergeRequest) bool {
